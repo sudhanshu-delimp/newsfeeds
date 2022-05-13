@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FeddController;
+use App\Http\Controllers\SiteController;
+use App\Http\Controllers\RssController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +19,4 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('getFeedsContent', [RssController::class, 'getFeedsContent']);

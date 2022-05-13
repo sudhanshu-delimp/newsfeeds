@@ -1,0 +1,496 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Site;
+use App\Models\Feed;
+use App\Models\Post;
+
+class RssController extends Controller
+{
+    public function getFeedsContent(){
+        $urls = Feed::all();
+        if(!empty($urls)){
+            foreach($urls as $url){
+                $context = stream_context_create(array('ssl'=>array(
+                'verify_peer' => false, 
+                "verify_peer_name"=>false
+                )));
+                libxml_set_streams_context($context);
+                $rss_feed = simplexml_load_file($url->url);
+                foreach($rss_feed->channel->item as $feed_item) {
+                    $response = [];
+                    $timestamp = strtotime($feed_item->pubDate); 
+                    $newDate = date("Y-m-d h:m:s", $timestamp );
+                    $link = str_replace(">","",$feed_item->link);
+                    if($this->isUrlExist($link)){
+                        continue;
+                    }
+                    $response  = $this->getSingleUrlData($link,$newDate);
+                    $response['site_id'] = $url->site_id;
+                    $response['publish_date'] = $newDate;
+                    $response['category'] = implode(",",$response['category']);
+                    Post::create($response)->id;
+                }  
+            }
+        }
+    }
+
+    public function isUrlExist($live_link){
+        $post = Post::where('live_link', '=', $live_link)->get();
+        return $post->count();die;
+    }
+
+    public function getSingleUrlData($url,$date){
+        $response = [];
+        if(strpos($url,"dev.albilad.site")){
+            $response = $this->getAlbiladContent($url,$date);
+          }
+          else if(strpos($url,"arabnews.com")){
+            $response = $this->getArabNewsContent($url,$date);
+          }
+          else if(strpos($url,"saudigazette.com.sa")){
+            $response = $this->getSaudigazetteContent($url,$date);
+          }
+          else if(strpos($url,"okaz.com.sa")){
+            $response = $this->getOkazContent($url,$date);
+          }
+          else if(strpos($url,"aleqt.com")){
+            $response = $this->getAleqtContent($url,$date);  
+          }
+          else if(strpos($url,"al-jazirah.com")){
+            $response = $this->getJazirahContent($url,$date);  
+          }
+          else if(strpos($url,"aawsat.com")){
+            $response = $this->getAawsatContent($url,$date); 
+          }
+          else if(strpos($url,"alriyadh.com")){
+            $response = $this->getAlriyadhContent($url,$date);
+          }
+          else if(strpos($url,"alwatan.com.sa")){
+            $response = $this->getAlwatanContent($url,$date);
+          }
+          else if(strpos($url,"al-madina.com")){
+            $response = $this->getMadinaContent($url,$date);
+          }
+          return $response;
+    }
+
+    public function getDomContent($link){
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_URL, $link);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $data = curl_exec($ch);
+        curl_close($ch);
+        return $data;
+    }
+
+    public function getAlbiladContent($item_url,$date){
+        $input = $cat_array = [];
+        $image_src = '';
+        $data = $this->getDomContent($item_url);
+        $dom = new \DOMDocument();
+        @$dom->loadHTML($data);
+        $xpath = new \DOMXPath($dom);
+
+        $query = '//*/div[starts-with(@class, \'cs-entry__category\')]//div[starts-with(@class, \'cs-meta-category\')]//ul';
+        $cats = $xpath->query($query);
+        if(!empty($cats)){
+          $li_tags = $cats[0]->getElementsByTagName('li');
+          if(!empty($li_tags)){
+              foreach($li_tags as $key=>$li_tag){
+                $a_tag = $li_tag->getElementsByTagName('a');
+                if(!in_array($a_tag->item(0)->nodeValue,$cat_array)){
+                  $cat_array[] = $a_tag->item(0)->nodeValue;
+                }
+              }
+          }
+        }
+
+        $metas = $dom->getElementsByTagName('meta');
+        for ($i = 0; $i < $metas->length; $i ++) {
+            $meta = $metas->item($i);
+            if ($meta->getAttribute('property') == 'og:title') {
+                $title = $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'og:image') {
+                $image_src = $meta->getAttribute('content');
+            }
+        }
+        $main_description = '';
+        $query = '//*/div[starts-with(@class, \'entry-content\')]';
+        $contents = $xpath->query($query);
+        foreach ($contents as $content) {
+          $main_description .= $dom->saveHTML($content);
+        }
+
+        $input['title'] = $title;
+        $input['image'] = $image_src;
+        
+        $input['live_link'] = $item_url;
+        $input['category'] = $cat_array;
+        $input['main_description'] = $main_description;
+        return $input;
+    }
+
+    public function getArabNewsContent($item_url,$date){
+        $input = $cat_array = [];
+        $image_src = '';
+        $data = $this->getDomContent($item_url);
+        $dom = new \DOMDocument();
+        @$dom->loadHTML($data);
+        $xpath = new \DOMXPath($dom);
+
+        $query = '//*/div[starts-with(@class, \'entry-tags\')]';
+        $cats = $xpath->query($query);
+        if(!empty($cats)){
+            $tags = $cats->item(0)->getElementsByTagName('a');
+            foreach ($tags as $key=>$tag) {
+                if(!in_array($tag->nodeValue,$cat_array)){
+                $cat_array[] = $tag->nodeValue;
+                }
+            } 
+        }
+
+        $metas = $dom->getElementsByTagName('meta');
+
+        for($i = 0; $i < $metas->length; $i ++) {
+            $meta = $metas->item($i);
+            if($meta->getAttribute('property') == 'og:title') {
+              $title= $meta->getAttribute('content');
+            }
+            if($meta->getAttribute('property') == 'og:image') {
+              $image_src = $meta->getAttribute('content');
+            }
+        }
+
+        $main_description = '';
+        $query = '//*/div[starts-with(@class, \'entry-content\')]//div[contains(@class, \'even\')]';
+        $contents = $xpath->query($query);
+        foreach ($contents as $content) {
+          $main_description .= $dom->saveHTML($content);
+        }
+
+        $input['title'] = $title;
+        $input['image'] = $image_src;
+        
+        $input['live_link'] = $item_url;
+        $input['category'] = $cat_array;
+        $input['main_description'] = $main_description;
+        return $input;
+    }
+
+    public function getSaudigazetteContent($item_url,$date){
+        $input = $cat_array = [];
+        $image_src = '';
+        $data = $this->getDomContent($item_url);
+        $dom = new \DOMDocument();
+        @$dom->loadHTML($data);
+        $xpath = new \DOMXPath($dom);
+
+        $metas = $dom->getElementsByTagName('meta');
+        for ($i = 0; $i < $metas->length; $i ++) {
+            $meta = $metas->item($i);
+            if ($meta->getAttribute('property') == 'og:title') {
+                $title = $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'og:image') {
+                $image_src = $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'article:section') {
+               $cat_array[] = $meta->getAttribute('content');
+            }
+        }
+        $main_description = '';
+        $query = '//*/div[starts-with(@class, \'article-body\')]';
+        $contents = $xpath->query($query);
+        foreach ($contents as $content) {
+          $main_description .= $dom->saveHTML($content);
+        }
+        $input['title'] = $title;
+        $input['image'] = $image_src;
+        
+        $input['live_link'] = $item_url;
+        $input['category'] = $cat_array;
+        $input['main_description'] = $main_description;
+        return $input;
+    }
+
+    public function getOkazContent($item_url,$date){
+        $input = $cat_array = [];
+        $image_src = '';
+        $data = $this->getDomContent($item_url);
+        $dom = new \DOMDocument();
+        @$dom->loadHTML($data);
+        $xpath = new \DOMXPath($dom);
+
+        $metas = $dom->getElementsByTagName('meta');
+        for ($i = 0; $i < $metas->length; $i ++) {
+            $meta = $metas->item($i);
+            if ($meta->getAttribute('property') == 'og:title') {
+                $title = $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'og:image') {
+                $image_src = $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'article:section') {
+               $cat_array[] = $meta->getAttribute('content');
+            }
+        }
+        $main_description = '';
+          $query = '//*/div[starts-with(@class, \'bodyText\')]';
+          $contents = $xpath->query($query);
+          foreach ($contents as $content) {
+            $main_description .= $dom->saveHTML($content);
+          }
+
+        $input['title'] = $title;
+        $input['image'] = $image_src;
+        
+        $input['live_link'] = $item_url;
+        $input['category'] = $cat_array;
+        $input['main_description'] = $main_description;
+        return $input;
+    }
+
+    public function getAleqtContent($item_url,$date){
+        $input = $cat_array = [];
+        $image_src = '';
+        $data = $this->getDomContent($item_url);
+        $dom = new \DOMDocument();
+        @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+        $xpath = new \DOMXPath($dom);
+
+        $query = '//*/span[starts-with(@class, \'title-inner\')]//span';
+        $cats = $xpath->query($query);
+        if(!empty($cats)){
+          $tags = $cats->item(0)->getElementsByTagName('a');
+          $cat_array[] = $cats->item(0)->nodeValue;
+        }
+
+        $metas = $dom->getElementsByTagName('meta');
+        for ($i = 0; $i < $metas->length; $i ++) {
+            $meta = $metas->item($i);
+            if ($meta->getAttribute('property') == 'og:title') {
+              $title= $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'og:image') {
+                $image_src = $meta->getAttribute('content');
+            }
+        }
+        $main_description = '';
+        $query = '//*/div[starts-with(@class, \'entry-content\')]';
+        $contents = $xpath->query($query);
+        foreach ($contents as $content) {
+          $main_description .= $dom->saveHTML($content);
+        }
+
+        $input['title'] = $title;
+        $input['image'] = $image_src;
+        
+        $input['live_link'] = $item_url;
+        $input['category'] = $cat_array;
+        $input['main_description'] = $main_description;
+        return $input;
+    }
+
+    public function getJazirahContent($item_url,$date){
+        $input = $cat_array = [];
+        $image_src = '';
+        $data = $this->getDomContent($item_url);
+        $dom = new \DOMDocument();
+        @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+        $xpath = new \DOMXPath($dom);
+
+        $query = '//*/input[starts-with(@name, \'print_subject\')]';
+        $cats = $xpath->query($query);
+        if(!empty($cats)){
+            $cat_array[] = $cats->item(0)->getAttribute('value');
+        }
+
+        $metas = $dom->getElementsByTagName('meta');
+        $body = "";
+        for ($i = 0; $i < $metas->length; $i ++) {
+            $meta = $metas->item($i);
+            if ($meta->getAttribute('property') == 'og:title') {
+                $title = $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'og:image') {
+                $image_src = $meta->getAttribute('content');
+            }
+        }
+        $main_description = '';
+        $query = '//*/div[starts-with(@class, \'writers-blk-bttm-left\')]//p';
+        $contents = $xpath->query($query);
+        foreach ($contents as $content) {
+          $main_description .= $dom->saveHTML($content);
+        }
+
+        $input['title'] = $title;
+        $input['image'] = $image_src;
+        
+        $input['live_link'] = $item_url;
+        $input['category'] = $cat_array;
+        $input['main_description'] = $main_description;
+        return $input;
+    }
+
+    public function getAawsatContent($item_url,$date){
+        $input = $cat_array = [];
+        $image_src = '';
+        $data = $this->getDomContent($item_url);
+        $dom = new \DOMDocument();
+        @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+        $xpath = new \DOMXPath($dom);
+
+        $query = '//*/ol[starts-with(@class, \'breadcrumb\')]//li[starts-with(@class, \'first\')]';
+        $cats = $xpath->query($query);
+        if(!empty($cats)){
+            $cat_array[] = $cats->item(0)->nodeValue;
+        }
+        $metas = $dom->getElementsByTagName('meta');
+        for ($i = 0; $i < $metas->length; $i ++) {
+            $meta = $metas->item($i);
+            if ($meta->getAttribute('property') == 'og:title') {
+               $title= $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'og:image') {
+                $image_src = $meta->getAttribute('content');
+            }
+        }
+        $main_description = '';
+        $query = '//*/div[starts-with(@class, \'node_new_body\')]';
+        $contents = $xpath->query($query);
+        foreach ($contents as $content) {
+          $main_description .= $dom->saveHTML($content);
+        }
+
+        $input['title'] = $title;
+        $input['image'] = $image_src;
+        
+        $input['live_link'] = $item_url;
+        $input['category'] = $cat_array;
+        $input['main_description'] = $main_description;
+        return $input;
+    }
+
+    public function getAlriyadhContent($item_url,$date){
+        $input = $cat_array = [];
+        $image_src = '';
+        $data = $this->getDomContent($item_url);
+        $dom = new \DOMDocument();
+        @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+        $xpath = new \DOMXPath($dom);
+
+        $cat_array = [];
+        $query = '//*/ol[starts-with(@class, \'breadcrumb\')]//li[starts-with(@class, \'active\')]';
+        $cats = $xpath->query($query);
+        if(!empty($cats)){
+          $cat_array[] = $cats->item(0)->nodeValue;
+        }
+        $metas = $dom->getElementsByTagName('meta');
+        for ($i = 0; $i < $metas->length; $i ++) {
+            $meta = $metas->item($i);
+            if ($meta->getAttribute('property') == 'og:title') {
+              $title= $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'og:image') {
+                $image_src = $meta->getAttribute('content');
+            }
+        }
+        $main_description = '';
+        $query = '//*/div[contains(@class, \'article-text\')]';
+        $content = $xpath->query($query);
+        foreach ($content->item(0)->getElementsByTagName('p') as $tag) {
+          $main_description .= '<p class="card-text">'.$tag->nodeValue.'</p>';
+        }
+
+        $input['title'] = $title;
+        $input['image'] = $image_src;
+        
+        $input['live_link'] = $item_url;
+        $input['category'] = $cat_array;
+        $input['main_description'] = $main_description;
+        return $input;
+    }
+
+    public function getAlwatanContent($item_url,$date){
+        $input = $cat_array = [];
+        $image_src = '';
+        $data = $this->getDomContent($item_url);
+        $dom = new \DOMDocument();
+        @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+        $xpath = new \DOMXPath($dom);
+
+        $metas = $dom->getElementsByTagName('meta');
+        for ($i = 0; $i < $metas->length; $i ++) {
+            $meta = $metas->item($i);
+            if ($meta->getAttribute('property') == 'og:title') {
+              $title= $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'og:image') {
+                $image_src = $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'article:section') {
+               $cat_array[] = $meta->getAttribute('content');
+            }
+        }
+        $main_description = '';
+        $query = '//*/div[starts-with(@class, \'articleBody\')]';
+        $contents = $xpath->query($query);
+        foreach ($contents as $content) {
+          $main_description .= $dom->saveHTML($content);
+        }
+        
+        $input['title'] = $title;
+        $input['image'] = $image_src;
+        
+        $input['live_link'] = $item_url;
+        $input['category'] = $cat_array;
+        $input['main_description'] = $main_description;
+        return $input;
+    }
+
+    public function getMadinaContent($item_url,$date){
+        $input = $cat_array = [];
+        $image_src = '';
+        $data = $this->getDomContent($item_url);
+        $dom = new \DOMDocument();
+        @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+        $xpath = new \DOMXPath($dom);
+
+        $metas = $dom->getElementsByTagName('meta');
+        $body = "";
+        for ($i = 0; $i < $metas->length; $i ++) {
+            $meta = $metas->item($i);
+            if ($meta->getAttribute('property') == 'og:title') {
+              $title= $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'og:image') {
+                $image_src = $meta->getAttribute('content');
+            }
+            if ($meta->getAttribute('property') == 'article:section') {
+               $cat_array[] = $meta->getAttribute('content');
+            }
+        }
+        $main_description = '';
+        $query = '//*/div[starts-with(@class, \'article-body\')]';
+        $contents = $xpath->query($query);
+        foreach ($contents as $content) {
+          $main_description .= $dom->saveHTML($content);
+        }
+
+        $input['title'] = $title;
+        $input['image'] = $image_src;
+        
+        $input['live_link'] = $item_url;
+        $input['category'] = $cat_array;
+        $input['main_description'] = $main_description;
+        return $input;
+    }
+}
