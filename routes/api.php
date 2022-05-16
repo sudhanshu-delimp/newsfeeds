@@ -19,3 +19,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::any('get_sites', [SiteController::class, 'getSites']);
+Route::any('get_articles', [SiteController::class, 'getArticles']);
+Route::any('get_article_detail', [SiteController::class, 'getArticleDetail']);
