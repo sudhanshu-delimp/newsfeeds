@@ -25,7 +25,7 @@ class SiteController extends BaseController{
             }
         }
         else{
-            $this->response['data']['error'] = langError($this->error);
+            $this->response['data']['error'] = $this->error;
         }
         
        $this->sendResponse($this->response);
