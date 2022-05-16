@@ -14,7 +14,7 @@ class AddTitleToSitesTable extends Migration
     public function up()
     {
         Schema::table('sites', function (Blueprint $table) {
-            //
+            $table->string('title')->after('id');
         });
     }
 
@@ -26,7 +26,7 @@ class AddTitleToSitesTable extends Migration
     public function down()
     {
         Schema::table('sites', function (Blueprint $table) {
-            //
+            $table->dropColumn('title');
         });
     }
 }
