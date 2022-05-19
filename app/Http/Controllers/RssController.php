@@ -10,7 +10,8 @@ use App\Models\Post;
 class RssController extends Controller
 {
     public function getFeedsContent(){
-        $urls = Feed::all();
+        //$urls = Feed::all();
+        $urls = Feed::where(['site_id'=>13])->get();
         if(!empty($urls)){
             foreach($urls as $url){
                 $context = stream_context_create(array('ssl'=>array(
@@ -21,17 +22,25 @@ class RssController extends Controller
                 $rss_feed = simplexml_load_file($url->url);
                 foreach($rss_feed->channel->item as $feed_item) {
                     $response = [];
+                    $categories = [];
                     $timestamp = strtotime($feed_item->pubDate); 
                     $newDate = date("Y-m-d h:m:s", $timestamp );
                     $link = str_replace(">","",$feed_item->link);
                     if($this->isUrlExist($link)){
                         continue;
                     }
+
+                    if($feed_item->category){
+                      foreach($feed_item->category as $category){
+                        $categories[]  = (string) $category;
+                      }
+                    }
                     $response  = $this->getSingleUrlData($link,$newDate);
                     $response['site_id'] = $url->site_id;
                     $response['publish_date'] = $newDate;
-                    $response['category'] = implode(",",$response['category']);
-                    Post::create($response)->id;
+                    $response['category'] = (!empty($categories))?implode(",",$categories):implode(",",$response['category']);
+                    echo '<pre>';print_r($response); break;
+                    //Post::create($response)->id;
                 }  
             }
         }
@@ -40,6 +49,18 @@ class RssController extends Controller
     public function isUrlExist($live_link){
         $post = Post::where('live_link', '=', $live_link)->get();
         return $post->count();die;
+    }
+
+    public function getAttributeValue($attributes,$attribute_name){
+      $value = '';
+      if(!empty($attributes)){
+        foreach($attributes as $attribute){
+          if($attribute->name == $attribute_name){
+            $value = $attribute->value;
+          }
+        }
+      }
+      return $value;
     }
 
     public function getSingleUrlData($url,$date){
@@ -73,6 +94,15 @@ class RssController extends Controller
           }
           else if(strpos($url,"al-madina.com")){
             $response = $this->getMadinaContent($url,$date);
+          }
+          else if(strpos($url,"hasatoday.com")){
+            $response = $this->getHasatodayContent($url,$date);
+          }
+          else if(strpos($url,"alweeam.com.sa")){
+            $response = $this->getAlweeamContent($url,$date);
+          }
+          else if(strpos($url,"almowaten.net")){
+            $response = $this->getAlmowatenContent($url,$date);
           }
           return $response;
     }
@@ -465,7 +495,6 @@ class RssController extends Controller
         $xpath = new \DOMXPath($dom);
 
         $metas = $dom->getElementsByTagName('meta');
-        $body = "";
         for ($i = 0; $i < $metas->length; $i ++) {
             $meta = $metas->item($i);
             if ($meta->getAttribute('property') == 'og:title') {
@@ -493,4 +522,96 @@ class RssController extends Controller
         $input['main_description'] = $main_description;
         return $input;
     }
+
+    public function getHasatodayContent($item_url,$date){
+      $input = $cat_array = [];
+      $title = $main_description = $image_src = '';
+      $data = $this->getDomContent($item_url);
+      $dom = new \DOMDocument();
+      @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+      $xpath = new \DOMXPath($dom);
+      $query = '//*/div[starts-with(@class, \'post-header\')]//h1';
+      $title_contents = $xpath->query($query);
+      if(!empty($title_contents)){
+        $title.= $title_contents->item(0)->nodeValue;
+      }
+      $query = '//*/div[starts-with(@class, \'post-header\')]//div[starts-with(@class, \'single-featured\')]//a//img';
+      $image_contents = $xpath->query($query);
+      if(!empty($image_contents)){
+        $attributes = $image_contents->item(0)->attributes;
+        $image_src .= $this->getAttributeValue($attributes,'data-src');
+      }
+      $query = '//*/div[starts-with(@class, \'pf-content\')]';
+      $contents = $xpath->query($query);
+      foreach ($contents as $content) {
+        $main_description .= $dom->saveHTML($content);
+      }
+
+      $input['title'] = $title;
+      $input['image'] = $image_src;
+      $input['live_link'] = $item_url;
+      $input['main_description'] = $main_description;
+      return $input;
+  }
+
+  public function getAlweeamContent($item_url,$date){
+    $input = $cat_array = [];
+    $title = $main_description = $image_src = '';
+    $data = $this->getDomContent($item_url);
+    $dom = new \DOMDocument();
+    @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+    $xpath = new \DOMXPath($dom);
+    $metas = $dom->getElementsByTagName('meta');
+    for ($i = 0; $i < $metas->length; $i ++) {
+      $meta = $metas->item($i);
+      if ($meta->getAttribute('property') == 'og:title') {
+        $title .= $meta->getAttribute('content');
+      }
+      if ($meta->getAttribute('property') == 'og:image') {
+          $image_src .= $meta->getAttribute('content');
+      }
+    }
+    $query = '//*/div[starts-with(@class, \'entry-content\')]//p';
+    $contents = $xpath->query($query);
+    foreach ($contents as $content) {
+      $main_description .= $dom->saveHTML($content);
+    }
+
+    $input['title'] = $title;
+    $input['image'] = $image_src;
+    $input['live_link'] = $item_url;
+    $input['main_description'] = $main_description;
+    return $input;
+ }
+
+ public function getAlmowatenContent($item_url,$date){
+    $input = $cat_array = [];
+    $title = $main_description = $image_src = '';
+    $data = $this->getDomContent($item_url);
+    $dom = new \DOMDocument();
+    @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+    $xpath = new \DOMXPath($dom);
+    $query = '//*/div[starts-with(@class, \'entry-header\')]//h1';
+    $title_contents = $xpath->query($query);
+    if(!empty($title_contents)){
+      $title.= $title_contents->item(0)->nodeValue;
+    }
+    $query = '//*/div[contains(@class, \'featured_image\')]//a//div//img';
+    $image_contents = $xpath->query($query);
+    if(!empty($image_contents)){
+      $attributes = $image_contents->item(0)->attributes;
+      $image_src .= $this->getAttributeValue($attributes,'data-lazy-src');
+    }
+    $query = '//*/div[starts-with(@class, \'entry-content\')]//p';
+    $contents = $xpath->query($query);
+    foreach ($contents as $content) {
+      $main_description .= $dom->saveHTML($content);
+    }
+
+    $input['title'] = $title;
+    $input['image'] = $image_src;
+    $input['live_link'] = $item_url;
+    $input['main_description'] = $main_description;
+    return $input;
+  }
 }
