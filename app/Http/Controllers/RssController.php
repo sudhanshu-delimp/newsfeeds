@@ -10,8 +10,8 @@ use App\Models\Post;
 class RssController extends Controller
 {
     public function getFeedsContent(){
-        //$urls = Feed::all();
-        $urls = Feed::where(['site_id'=>13])->get();
+        $urls = Feed::all();
+        //$urls = Feed::where(['site_id'=>13])->get();
         if(!empty($urls)){
             foreach($urls as $url){
                 $context = stream_context_create(array('ssl'=>array(
@@ -39,8 +39,8 @@ class RssController extends Controller
                     $response['site_id'] = $url->site_id;
                     $response['publish_date'] = $newDate;
                     $response['category'] = (!empty($categories))?implode(",",$categories):implode(",",$response['category']);
-                    echo '<pre>';print_r($response); break;
-                    //Post::create($response)->id;
+                    //echo '<pre>';print_r($response); break;
+                    Post::create($response)->id;
                 }  
             }
         }
