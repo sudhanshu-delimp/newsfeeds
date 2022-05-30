@@ -78,7 +78,7 @@ class DemoCron extends Command
                 }
               }
               catch (Exception $e) {
-                Log::useDailyFiles(storage_path().'/logs/newfeeds.log');
+                Log::useDailyFiles(storage_path().'/logs/newsfeeds.log');
                 Log::info('Exception Captured: ',  $e->getMessage(), "\n");
               } 
           }
