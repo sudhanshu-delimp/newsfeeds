@@ -8,6 +8,8 @@ use App\Models\Feed;
 use App\Models\Post;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Exception;
+
 class RssController extends Controller
 {
     public function getFeedsContent(){
@@ -48,8 +50,7 @@ class RssController extends Controller
                   }
                 }
                 catch (Exception $e) {
-                  Log::useDailyFiles(storage_path().'/logs/newsfeeds.log');
-                  Log::info('Exception Captured: ',  $e->getMessage(), "\n");
+                  Log::info('Exception Captured: '.$e->getMessage());
                 } 
             }
         }

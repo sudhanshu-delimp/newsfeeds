@@ -8,6 +8,7 @@ use App\Models\Feed;
 use App\Models\Post;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Exception;
 
 class DemoCron extends Command
 {
@@ -78,8 +79,7 @@ class DemoCron extends Command
                 }
               }
               catch (Exception $e) {
-                Log::useDailyFiles(storage_path().'/logs/newsfeeds.log');
-                Log::info('Exception Captured: ',  $e->getMessage(), "\n");
+                Log::info('Exception Captured: '.$e->getMessage());
               } 
           }
       }
