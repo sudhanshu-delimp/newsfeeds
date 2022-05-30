@@ -6,6 +6,8 @@ use Illuminate\Console\Command;
 use App\Models\Site;
 use App\Models\Feed;
 use App\Models\Post;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class DemoCron extends Command
 {
@@ -42,22 +44,26 @@ class DemoCron extends Command
     {
         $urls = Feed::all();
         if(!empty($urls)){
-            foreach($urls as $url){
-                $context = stream_context_create(array('ssl'=>array(
-                'verify_peer' => false, 
-                "verify_peer_name"=>false
-                )));
-                libxml_set_streams_context($context);
+          foreach($urls as $url){
+              $context = stream_context_create(array('ssl'=>array(
+              'verify_peer' => false, 
+              "verify_peer_name"=>false
+              )));
+              libxml_set_streams_context($context);
+              libxml_use_internal_errors(true);
+              try {
                 $rss_feed = simplexml_load_file($url->url);
-                foreach($rss_feed->channel->item as $feed_item) {
+                if(!empty($rss_feed->channel->item)){
+                  foreach($rss_feed->channel->item as $feed_item) {
                     $response = [];
-                    $timestamp = strtotime($feed_item->pubDate); 
-                    $newDate = date("Y-m-d h:m:s", $timestamp );
+                    $categories = [];
+                    $timestamp = Carbon::parse($feed_item->pubDate);
+                    $newDate = $timestamp->format('Y-m-d');
                     $link = str_replace(">","",$feed_item->link);
                     if($this->isUrlExist($link)){
-                        continue;
+                      continue;
                     }
-                    if($feed_item->category){
+                    if(!empty($feed_item->category)){
                       foreach($feed_item->category as $category){
                         $categories[]  = (string) $category;
                       }
@@ -66,10 +72,17 @@ class DemoCron extends Command
                     $response['site_id'] = $url->site_id;
                     $response['publish_date'] = $newDate;
                     $response['category'] = (!empty($categories))?implode(",",$categories):implode(",",$response['category']);
+                    //echo '<pre>';print_r($response); //break;
                     Post::create($response)->id;
-                }  
-            }
-        }
+                  }
+                }
+              }
+              catch (Exception $e) {
+                Log::useDailyFiles(storage_path().'/logs/newfeeds.log');
+                Log::info('Exception Captured: ',  $e->getMessage(), "\n");
+              } 
+          }
+      }
     }
 
     public function isUrlExist($live_link){
@@ -129,6 +142,15 @@ class DemoCron extends Command
           }
           else if(strpos($url,"almowaten.net")){
             $response = $this->getAlmowatenContent($url,$date);
+          }
+          else if(strpos($url,"makkahnewspaper.com")){
+            $response = $this->getMakkahNewsPaperContent($url,$date);
+          }
+          else if(strpos($url,"alyaum.com")){
+            $response = $this->getAlyaumContent($url,$date);
+          }
+          else if(strpos($url,"spa.gov.sa")){
+            $response = $this->getSpaContent($url,$date);
           }
           return $response;
     }
@@ -638,6 +660,112 @@ class DemoCron extends Command
     $input['title'] = $title;
     $input['image'] = $image_src;
     $input['live_link'] = $item_url;
+    $input['main_description'] = $main_description;
+    return $input;
+  }
+
+  public function getMakkahNewsPaperContent($item_url,$date){
+    $input = $cat_array = [];
+    $title = $main_description = $image_src = '';
+    $data = $this->getDomContent($item_url);
+    $dom = new \DOMDocument();
+    @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+    $xpath = new \DOMXPath($dom);
+
+    $metas = $dom->getElementsByTagName('meta');
+    for ($i = 0; $i < $metas->length; $i ++) {
+        $meta = $metas->item($i);
+        if ($meta->getAttribute('property') == 'og:image') {
+          $image_src = $meta->getAttribute('content');
+        }
+        if ($meta->getAttribute('property') == 'article:section') {
+            $cat_array[] = $meta->getAttribute('content');
+        }
+    }
+
+    $query = '//*/div[starts-with(@class, \'holder-article__title\')]//h1';
+    $title_contents = $xpath->query($query);
+    if(!empty($title_contents)){
+      $title.= $title_contents->item(0)->nodeValue;
+    }
+
+    $query = '//*/div[starts-with(@class, \'section-main-article\')]//div[starts-with(@class, \'article-desc\')]';
+    $contents = $xpath->query($query);
+    foreach ($contents as $content) {
+      $main_description .= $dom->saveHTML($content);
+    }
+    
+    $input['title'] = $title;
+    $input['image'] = $image_src;
+    $input['live_link'] = $item_url;
+    $input['category'] = $cat_array;
+    $input['main_description'] = $main_description;
+    return $input;
+  }
+
+  public function getAlyaumContent($item_url,$date){
+    $input = $cat_array = [];
+    $title = $main_description = $image_src = '';
+    $data = $this->getDomContent($item_url);
+    $dom = new \DOMDocument();
+    @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+    $xpath = new \DOMXPath($dom);
+
+    $metas = $dom->getElementsByTagName('meta');
+    for ($i = 0; $i < $metas->length; $i ++) {
+        $meta = $metas->item($i);
+        if ($meta->getAttribute('property') == 'og:image') {
+          $image_src = $meta->getAttribute('content');
+        }
+        if ($meta->getAttribute('property') == 'article:section') {
+            $cat_array[] = $meta->getAttribute('content');
+        }
+    }
+
+    $query = '//*/div[starts-with(@class, \'aksa-to1\')]//h1';
+    $title_contents = $xpath->query($query);
+    if(!empty($title_contents)){
+      $title.= $title_contents->item(0)->nodeValue;
+    }
+
+    $query = '//*/article//div[contains(@class, \'aksa-articleBody\')]';
+    $contents = $xpath->query($query);
+    foreach ($contents as $content) {
+      $main_description .= $dom->saveHTML($content);
+    }
+    
+    $input['title'] = $title;
+    $input['image'] = $image_src;
+    $input['live_link'] = $item_url;
+    $input['category'] = $cat_array;
+    $input['main_description'] = $main_description;
+    return $input;
+  }
+
+  public function getSpaContent($item_url,$date){
+    $input = $cat_array = [];
+    $title = $main_description = $image_src = '';
+    $data = $this->getDomContent($item_url);
+    $dom = new \DOMDocument();
+    @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+    $xpath = new \DOMXPath($dom);
+
+    $query = '//*/div[starts-with(@class, \'site-content\')]//div[starts-with(@class, \'block_home_slider\')]//h4';
+    $title_contents = $xpath->query($query);
+    if(!empty($title_contents)){
+      $title.= $title_contents->item(0)->nodeValue;
+    }
+
+    $query = '//*/div[starts-with(@class, \'divNewsDetailsText\')]';
+    $contents = $xpath->query($query);
+    foreach ($contents as $content) {
+      $main_description .= $dom->saveHTML($content);
+    }
+    $main_description = str_replace("cashdisk/barcode","http://www.spa.gov.sa/cashdisk/barcode",$main_description);
+    $input['title'] = $title;
+    $input['image'] = $image_src;
+    $input['live_link'] = $item_url;
+    $input['category'] = $cat_array;
     $input['main_description'] = $main_description;
     return $input;
   }
