@@ -42,7 +42,7 @@
                     <th>Sn.</th>
                     <th>Site</th>
                     <th>Title</th>
-                    <th>Publish Date</th>
+                    <th>Created</th>
                     <th>Live Link</th>
                   </tr>
                   </thead>
@@ -53,7 +53,8 @@
                                 <td>{{$key+1}}</td>
                                 <td>{{$post->site->title}}</td>
                                 <td>{{$post->title}}</td>
-                                <td>{{ \Carbon\Carbon::parse($post->publish_date)->format('Y-m-d') }}</td>
+                                <!-- <td>{{ \Carbon\Carbon::parse($post->publish_date)->format('Y-m-d') }}</td> -->
+                                <td>{{ \Carbon\Carbon::parse($post->created_at)->format('Y-m-d h:i A') }}</td>
                                 <td>
                                   <a target="_blank" href="{{$post->live_link}}">View</a>
                                 </td>
@@ -66,7 +67,7 @@
                 <th>Sn.</th>
                 <th>Title</th>
                 <th>Site</th>
-                <th>Publish Date</th>
+                <th>Created</th>
                 <th>Action</th>
                   </tr>
                   </tfoot>
