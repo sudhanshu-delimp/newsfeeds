@@ -1,8 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\FeddController;
+use App\Http\Controllers\FeedController;
 use App\Http\Controllers\SiteController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\RssController;
 
 /*
@@ -17,6 +18,10 @@ use App\Http\Controllers\RssController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('manage_post.index');
 });
+
 Route::get('getFeedsContent', [RssController::class, 'getFeedsContent']);
+Route::resource('manage_post', PostController::class);
+Route::resource('manage_site', SiteController::class);
+Route::resource('manage_feed', FeedController::class);
