@@ -42,6 +42,7 @@
                     <th>Sn.</th>
                     <th>Title</th>
                     <th>Site</th>
+                    <th>Logo</th>
                     <th>Action</th>
                   </tr>
                   </thead>
@@ -52,6 +53,7 @@
                                 <td>{{$key+1}}</td>
                                 <td>{{$site->title}}</td>
                                 <td>{{$site->site}}</td>
+                                <td><img class="img-fluid img-thumbnail" style="width: 100px;height: 100px;" src="{{asset('uploads/site_logo/'.$site->logo)}}" alt=""></td>
                                 <td>
                                 <div class="btn-group">
                                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
@@ -77,6 +79,7 @@
                 <th>Sn.</th>
                 <th>Title</th>
                 <th>Site</th>
+                <th>Logo</th>
                 <th>Action</th>
                   </tr>
                   </tfoot>
