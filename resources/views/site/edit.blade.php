@@ -68,14 +68,21 @@
                     @enderror
                   </div>
                   <div class="form-group">
-                    <label for="exampleInputFile">Logo</label>
+                    <div class="row">
+                      <div class="col-sm-4">
+                      <label for="exampleInputFile">Logo</label>
                     <div class="input-group">
-                      <div class="custom-file">
-                        <input type="file" name="file" class="custom-file-input" id="exampleInputFile">
-                        <label class="custom-file-label" for="exampleInputFile">Choose file</label>
+                    <div class="custom-file">
+                    <input type="file" name="file" class="custom-file-input" id="exampleInputFile">
+                    <label class="custom-file-label" for="exampleInputFile">Choose file</label>
+                    </div>
+                    <div class="input-group-append">
+                    <span class="input-group-text">Upload</span>
+                    </div>
+                    </div>
                       </div>
-                      <div class="input-group-append">
-                        <span class="input-group-text">Upload</span>
+                      <div class="col-sm-2">
+                        <img class="img-fluid mb-3" src="{{asset('uploads/site_logo/'.$site->logo)}}" alt="">
                       </div>
                     </div>
                     @error('file')
