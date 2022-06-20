@@ -15,13 +15,38 @@ class SiteController extends BaseController{
         $this->response['status'] = "0";
     }
 
+    private function add_object($sites){
+        $obj_first = $obj_last = [];
+        $obj_last['id'] = count($sites)+1;
+        $obj_last['title'] = "Last";
+        $obj_last['site'] = "site";
+        $obj_last['logo'] = "last_default.png";
+        $obj_last['created_at'] = "";
+        $obj_last['updated_at'] = "";
+        $obj_last['logo_url'] =  asset('uploads/site_logo/last_default.png');
+        $sites->push($obj_last);
+
+        $obj_first['id'] = 0;
+        $obj_first['title'] = "First";
+        $obj_first['site'] = "site";
+        $obj_first['logo'] = "first_default.png";
+        $obj_first['created_at'] = "";
+        $obj_first['updated_at'] = "";
+        $obj_first['logo_url'] =  asset('uploads/site_logo/first_default.png');
+        $sites->prepend($obj_first);
+        return $sites;
+    }
+
     public function getSites(Request $request){
+        $sites = $first_object = $last_object = [];
         if(count($this->error) == 0){
             $sites = Site::all();
             if(!empty($sites)){
                 foreach($sites as $key=>$site){
                     $sites[$key]['logo_url'] = asset('uploads/site_logo/'.$site->logo);
                 }
+                $this->response['data']['sites'] = $sites;
+                $sites = $this->add_object($sites);
                 $this->response['status'] = "1";
                 $this->response['data']['sites'] = $sites;
             }
