@@ -47,14 +47,28 @@
                   </tr>
                   </thead>
                   <tbody>
+                    @if(!$posts->isEmpty())
+                        @foreach($posts as $key=>$post)
+                            <tr>
+                                <td>{{$key+1}}</td>
+                                <td>{{$post->site->title}}</td>
+                                <td>{{$post->title}}</td>
+                                <!-- <td>{{ \Carbon\Carbon::parse($post->publish_date)->format('Y-m-d') }}</td> -->
+                                <td>{{ \Carbon\Carbon::parse($post->created_at)->format('Y-m-d h:i A') }}</td>
+                                <td>
+                                  <a target="_blank" href="{{$post->live_link}}">View</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
                   </tbody>
                   <tfoot>
                   <tr>
-                    <th>Sn.</th>
-                    <th>Site</th>
-                    <th>Title</th>
-                    <th>Created</th>
-                    <th>Live Link</th>
+                <th>Sn.</th>
+                <th>Title</th>
+                <th>Site</th>
+                <th>Created</th>
+                <th>Action</th>
                   </tr>
                   </tfoot>
                 </table>
@@ -77,62 +91,20 @@
 <script src="{{ asset('/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
 <script src="{{ asset('/plugins/datatables-buttons/js/dataTables.buttons.min.js') }}"></script>
 <script>
-  $(function(){
-      var table = $('#example2').DataTable({
-          'pageLength':20,
-          'lengthChange': false,
-          'searching'   : false,
-          "processing": true,
-          "serverSide": true,
-          "order": [[ 1, "desc" ]],
-          "ajax":{
-                   url: "{{ route('getposts') }}",
-                   dataType: "json",
-                   type: "POST",
-                   data:function(data) {
-                    data.name = $('#Name').val();
-                    data.email = $('#Email').val();
-                    data.phone = $('#Phone').val();
-                    data.from_date = $('#startdate').val();
-                    data.to_date = $('#enddate').val();
-                  }
-                  // ,
-                  // success: function(data){
-                  //   console.log(data);
-                  // }
-                 },
-          "columns": [
-              { "data": "sn" },
-              { "data": "site" },
-              { "data": "title" },
-              { "data": "created" },
-              { "data": "live_link" }
-          ]
-
-      });
-      $('#search').on('click', function (event) {
-        event.preventDefault();
-        table.draw();
-      });
-      $('#reset').on('click', function(event){
-        event.preventDefault();
-        $("#search-form")[0].reset();
-        table.draw();
-      });
-
-      $("#startdate").datepicker({
-          todayBtn:  1,
-          autoclose: true,
-      }).on('changeDate', function (selected) {
-        var minDate = new Date(selected.date.valueOf());
-        $('#enddate').datepicker('setStartDate', minDate);
-      });
-
-      $("#enddate").datepicker({autoclose: true})
-      .on('changeDate', function (selected) {
-        var maxDate = new Date(selected.date.valueOf());
-        $('#startdate').datepicker('setEndDate', maxDate);
-      });
-    })
+  $(function () {
+    $("#example1").DataTable({
+      "responsive": true, "lengthChange": false, "autoWidth": false,
+      "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+    $('#example2').DataTable({
+      "paging": true,
+      "lengthChange": false,
+      "searching": false,
+      "ordering": true,
+      "info": true,
+      "autoWidth": false,
+      "responsive": true,
+    });
+  });
 </script>
 @endpush

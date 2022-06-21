@@ -29,6 +29,7 @@ Route::group([
         Route::get('getFeedsContent', [RssController::class, 'getFeedsContent']);
         Route::resource('manage_user', UserController::class);
         Route::resource('manage_post', PostController::class);
+        Route::any('getposts', [PostController::class, 'getPosts'])->name('getposts');
         Route::resource('manage_site', SiteController::class);
         Route::resource('manage_feed', FeedController::class);
     }
