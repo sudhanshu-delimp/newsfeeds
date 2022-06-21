@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\PostController;
@@ -17,11 +18,18 @@ use App\Http\Controllers\RssController;
 |
 */
 
-Route::get('/', function () {
-    return redirect()->route('manage_post.index');
-});
+Route::get('/', [UserController::class, 'login'])->name('admin_login');
+Route::post('process_login', [UserController::class, 'processLogin'])->name('process_login');
 
-Route::get('getFeedsContent', [RssController::class, 'getFeedsContent']);
-Route::resource('manage_post', PostController::class);
-Route::resource('manage_site', SiteController::class);
-Route::resource('manage_feed', FeedController::class);
+Route::group([
+    'middleware' => 'isLogin'
+    ],
+    function() {
+        Route::get('logout', [UserController::class, 'logout'])->name('logout');
+        Route::get('getFeedsContent', [RssController::class, 'getFeedsContent']);
+        Route::resource('manage_user', UserController::class);
+        Route::resource('manage_post', PostController::class);
+        Route::resource('manage_site', SiteController::class);
+        Route::resource('manage_feed', FeedController::class);
+    }
+  );
