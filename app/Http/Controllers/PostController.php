@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Validator;
 use App\Models\Post;
+use App\Models\Site;
 
 class PostController extends Controller
 {
@@ -13,10 +14,23 @@ class PostController extends Controller
     {
         $pageHeading = "Manage Post";
         $posts = Post::orderBy('id','desc')->get();
-        return view('post.index', compact('pageHeading','posts'));
+        $sites = Site::orderBy('title','asc')->get();
+        return view('post.index', compact('pageHeading','sites','posts'));
+    }
+
+    public function getSearchableFields($request){
+        $search = [];
+        $searchableFields = ['title','created_at','site','from_date','to_date'];
+        foreach($searchableFields as $field){
+            if(isset($request[$field]) && trim($request[$field])!=""){
+            $search[$field] = $request[$field];
+            }
+        }
+        return $search;
     }
 
     public function getPosts(Request $request){
+        $search = $this->getSearchableFields($request->all());
         $columns = array(0=>'id', 1=>'title', 2=>'created_at');
     
         $limit = $request->input('length');
@@ -25,59 +39,53 @@ class PostController extends Controller
         $dir = $request->input('order.0.dir');
     
         $post =  Post::query();
-        // if(count($search) > 0){
-        //     $sh = (object)$search;
-        //     if(!empty($sh->from_date) && !empty($sh->to_date) && $sh->from_date!=$sh->to_date){
-        //       $driver->whereBetween('users.created_at',[$sh->from_date,$sh->to_date]);
-        //     }
-        //     else if(!empty($sh->from_date) && !empty($sh->to_date) && $sh->from_date == $sh->to_date){
-        //       $driver->where('users.created_at', 'like', '%'.$sh->from_date.'%');
-        //     }
-        //     else if(!empty($sh->from_date)){
-        //       $driver->where('users.created_at', '>=', $sh->from_date);
-        //     }
-        //     else if(!empty($sh->to_date)){
-        //       $driver->where('users.created_at', '<=', $sh->to_date);
-        //     }
-        //     if(!empty($sh->name)){
-        //       $driver->where('users.name','LIKE',"%{$sh->name}%");
-        //     }
-        //     if(!empty($sh->email)){
-        //       $driver->where('users.email','LIKE',"%{$sh->email}%");
-        //     }
-        //     if(!empty($sh->phone)){
-        //       $driver->where('users.phone','LIKE',"%{$sh->phone}%");
-        //     }
-        // }
+        if(count($search) > 0){
+            $sh = (object)$search;
+            if(!empty($sh->from_date) && !empty($sh->to_date) && $sh->from_date!=$sh->to_date){
+                $post->whereBetween('posts.created_at',[$sh->from_date,$sh->to_date]);
+            }
+            else if(!empty($sh->from_date) && !empty($sh->to_date) && $sh->from_date == $sh->to_date){
+                $post->where('posts.created_at', 'like', '%'.$sh->from_date.'%');
+            }
+            else if(!empty($sh->from_date)){
+                $post->where('posts.created_at', '>=', $sh->from_date);
+            }
+            else if(!empty($sh->to_date)){
+                $post->where('posts.created_at', '<=', $sh->to_date);
+            }
+            if(!empty($sh->title)){
+                $post->where('posts.title','LIKE',"%{$sh->title}%");
+            }
+            if(!empty($sh->site)){
+                $post->where('posts.site_id',$sh->site);
+            }
+        }
         $post->offset($start);
         $post->limit($limit);
         $post->orderBy($order,$dir);
         $posts = $post->get();
         $post =  Post::query();
-        //   if(count($search) > 0){
-        //     $sh = (object)$search;
-        //     if(!empty($sh->from_date) && !empty($sh->to_date) && $sh->from_date!=$sh->to_date){
-        //       $driver->whereBetween('users.created_at',[$sh->from_date,$sh->to_date]);
-        //     }
-        //     else if(!empty($sh->from_date) && !empty($sh->to_date) && $sh->from_date == $sh->to_date){
-        //       $driver->where('users.created_at', 'like', '%'.$sh->from_date.'%');
-        //     }
-        //     else if(!empty($sh->from_date)){
-        //       $driver->where('users.created_at', '>=', $sh->from_date);
-        //     }
-        //     else if(!empty($sh->to_date)){
-        //       $driver->where('users.created_at', '<=', $sh->to_date);
-        //     }
-        //     if(!empty($sh->name)){
-        //       $driver->where('users.name','LIKE',"%{$sh->name}%");
-        //     }
-        //     if(!empty($sh->email)){
-        //       $driver->where('users.email','LIKE',"%{$sh->email}%");
-        //     }
-        //     if(!empty($sh->phone)){
-        //       $driver->where('users.phone','LIKE',"%{$sh->phone}%");
-        //     }
-        //   }
+          if(count($search) > 0){
+            $sh = (object)$search;
+            if(!empty($sh->from_date) && !empty($sh->to_date) && $sh->from_date!=$sh->to_date){
+              $post->whereBetween('posts.created_at',[$sh->from_date,$sh->to_date]);
+            }
+            else if(!empty($sh->from_date) && !empty($sh->to_date) && $sh->from_date == $sh->to_date){
+              $post->where('posts.created_at', 'like', '%'.$sh->from_date.'%');
+            }
+            else if(!empty($sh->from_date)){
+              $post->where('posts.created_at', '>=', $sh->from_date);
+            }
+            else if(!empty($sh->to_date)){
+              $post->where('posts.created_at', '<=', $sh->to_date);
+            }
+            if(!empty($sh->title)){
+              $post->where('posts.title','LIKE',"%{$sh->title}%");
+            }
+            if(!empty($sh->site)){
+              $post->where('posts.site_id',$sh->site);
+            }
+          }
           $totalData  = $post->count();
           $totalFiltered = $totalData;
         $data = array();

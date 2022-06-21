@@ -25,6 +25,48 @@
       <div class="container-fluid">
         <div class="row">
           <div class="col-12">
+          <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">{{'search'}}</h3>
+              </div>
+              <!-- /.card-header -->
+              <div class="card-body">
+                <form id="search-form">
+                  <div class="row">
+                    <div class="form-group col-sm-3">
+                      <label for="Name">Site</label>
+                      <select  class="form-control" name="site"  id="search_site">
+                        <option value="">All</option>
+                        @if(!$sites->isEmpty())
+                          @foreach($sites as $site)
+                            <option value="{{$site->id}}">{{$site->title}}</option>
+                          @endforeach
+                        @endif
+                      </select>
+                    </div>
+                    <div class="form-group col-sm-3">
+                      <label for="Email">Title</label>
+                      <input class="form-control" name="title" type="text" id="search_title" placeholder="Title">
+                    </div>
+                    <div class="form-group col-sm-3">
+                      <label for="From_Date">From Date</label>
+                      <input class="form-control" name="from_date" type="text" id="search_startdate" placeholder="From Date" data-date-format="yyyy-mm-d">
+                    </div>
+                    <div class="form-group col-sm-3">
+                      <label for="To_Date">To Date</label>
+                      <input class="form-control" name="to_date" type="text" id="search_enddate" placeholder="To Date" data-date-format="yyyy-mm-d">
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="form-group col-sm-12 text-center">
+                      <a href="#" class="btn btn-primary" id="search">Search</a>
+                      <a href="#" class="btn btn-primary" id="reset">Reset</a>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <!-- /.card-body -->
+            </div>
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">{{$pageHeading}}</h3>
@@ -90,11 +132,10 @@
                    dataType: "json",
                    type: "POST",
                    data:function(data) {
-                    data.name = $('#Name').val();
-                    data.email = $('#Email').val();
-                    data.phone = $('#Phone').val();
-                    data.from_date = $('#startdate').val();
-                    data.to_date = $('#enddate').val();
+                    data.site = $('#search_site').val();
+                    data.title = $('#search_title').val();
+                    data.from_date = $('#search_startdate').val();
+                    data.to_date = $('#search_enddate').val();
                   }
                   // ,
                   // success: function(data){
@@ -120,19 +161,39 @@
         table.draw();
       });
 
-      $("#startdate").datepicker({
-          todayBtn:  1,
-          autoclose: true,
-      }).on('changeDate', function (selected) {
-        var minDate = new Date(selected.date.valueOf());
-        $('#enddate').datepicker('setStartDate', minDate);
+      var dateFormat = "yy-mm-dd",
+      from = $( "#search_startdate" )
+        .datepicker({
+          defaultDate: "+1w",
+          dateFormat:dateFormat,
+          changeMonth: true,
+          numberOfMonths: 1
+        })
+        .on( "change", function() {
+          to.datepicker( "option", "minDate", getDate( this ) );
+        }),
+      to = $( "#search_enddate" ).datepicker({
+        defaultDate: "+1w",
+        dateFormat:dateFormat,
+        changeMonth: true,
+        numberOfMonths: 1
+      })
+      .on( "change", function() {
+        from.datepicker( "option", "maxDate", getDate( this ) );
       });
 
-      $("#enddate").datepicker({autoclose: true})
-      .on('changeDate', function (selected) {
-        var maxDate = new Date(selected.date.valueOf());
-        $('#startdate').datepicker('setEndDate', maxDate);
-      });
+    function getDate( element ) {
+      var date;
+      try {
+        date = $.datepicker.parseDate( dateFormat, element.value );
+      } catch( error ) {
+        date = null;
+      }
+      return date;
+    }
+
+
+      
     })
 </script>
 @endpush

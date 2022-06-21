@@ -20,6 +20,7 @@
 <script src="{{ asset('/plugins/jquery/jquery.min.js') }}"></script>
 <script src="{{ asset('/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('/dist/js/adminlte.min.js') }}"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script>
   var base_url = '{{ url('') }}';
   $.ajaxSetup({
