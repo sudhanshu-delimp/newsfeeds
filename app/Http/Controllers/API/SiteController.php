@@ -46,7 +46,7 @@ class SiteController extends BaseController{
                     $sites[$key]['logo_url'] = asset('uploads/site_logo/'.$site->logo);
                 }
                 $this->response['data']['sites'] = $sites;
-                //$sites = $this->add_object($sites);
+                $sites = $this->add_object($sites);
                 $this->response['status'] = "1";
                 $this->response['data']['sites'] = $sites;
             }
