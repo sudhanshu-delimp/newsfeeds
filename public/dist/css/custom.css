@@ -1,0 +1,13 @@
+#example2 td li form input.btn-danger {
+    background-color: transparent;
+    border: 0;
+    width: 100%;
+    color: #dc3545;
+    text-align: left;
+    border-top: 1px solid #eee;
+    padding: 0.25rem 1rem;
+    margin: 0;
+}
+#example2 td li form input.btn-danger:hover {
+    background-color: #f8f9fa;
+}
