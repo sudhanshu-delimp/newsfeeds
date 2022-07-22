@@ -126,7 +126,11 @@
           'searching'   : false,
           "processing": true,
           "serverSide": true,
-          "order": [[ 1, "desc" ]],
+          "order": [[ 3, "desc" ]],
+          "columnDefs": [{
+          "targets": [1],
+          "orderable": false
+          }],
           "ajax":{
                    url: "{{ route('getposts') }}",
                    dataType: "json",
@@ -193,7 +197,7 @@
     }
 
 
-      
+
     })
 </script>
 @endpush

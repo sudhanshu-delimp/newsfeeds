@@ -31,13 +31,13 @@ class PostController extends Controller
 
     public function getPosts(Request $request){
         $search = $this->getSearchableFields($request->all());
-        $columns = array(0=>'id', 1=>'title', 2=>'created_at');
-    
+        $columns = array(0=>'posts.id', 1=>'posts.site.title', 2=>'posts.title', 3=>'posts.created_at');
+
         $limit = $request->input('length');
         $start = $request->input('start');
         $order = $columns[$request->input('order.0.column')];
         $dir = $request->input('order.0.dir');
-    
+
         $post =  Post::query();
         if(count($search) > 0){
             $sh = (object)$search;
@@ -99,7 +99,7 @@ class PostController extends Controller
             $data[] = $nestedData;
           }
         }
-    
+
         $json_data = array(
         "draw"            => intval($request->input('draw')),
         "recordsTotal"    => intval($totalData),
