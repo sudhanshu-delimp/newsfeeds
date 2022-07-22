@@ -20,6 +20,8 @@ use App\Http\Controllers\RssController;
 
 Route::get('/', [UserController::class, 'login'])->name('admin_login');
 Route::post('process_login', [UserController::class, 'processLogin'])->name('process_login');
+Route::get('forgot_password', [UserController::class, 'forgotPassword'])->name('forgot_password');
+Route::post('process_forgot_password', [UserController::class, 'processForgotPassword'])->name('process_forgot_password');
 
 Route::group([
     'middleware' => 'isLogin'

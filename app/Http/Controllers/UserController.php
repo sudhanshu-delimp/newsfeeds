@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use App\Mail\ForgotMail;
+use Illuminate\Support\Facades\Mail;
 use Validator;
 use Session;
 use App\Models\User;
@@ -14,7 +17,7 @@ class UserController extends Controller
     public function login(Request $request)
     {
       if($request->session()->has('account')){
-        return redirect(route('manage_post.index')); 
+        return redirect(route('manage_post.index'));
       }
       else{
         $pageHeading = "Login";
@@ -26,7 +29,7 @@ class UserController extends Controller
     {
       if($request->session()->has('account')){
         $request->session()->flush();
-        return redirect(route('admin_login')); 
+        return redirect(route('admin_login'));
       }
     }
 
@@ -80,18 +83,37 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        
+
     }
 
     public function edit(Request $request, $id){
-       
+
     }
 
     public function update(Request $request, $id){
-        
+
     }
 
     public function destroy(Request $request, $id){
-        
+
+    }
+
+    public function forgotPassword(){
+      $pageHeading = "Forgot Password";
+      return view('user.forgot_password', compact('pageHeading'));
+    }
+
+    public function processForgotPassword(Request $request){
+      $validate['email'] = 'required|email|exists:users';
+      $request->validate($validate);
+      $user = User::where('email','=',$request->email)->first();
+      $password = Str::random(8);
+      User::whereId($user->id)->update(array('password'=>Hash::make($password)));
+      $data = array(
+        'name' => $user->name,
+        'password' => $password
+      );
+      Mail::to($request->email)->send(new ForgotMail($data));
+      return back()->with('success', 'Thanks we have sent your password! :'.$password );
     }
 }

@@ -22,16 +22,13 @@
       <a href="../../index2.html" class="h1"><b>Admin</b></a>
     </div>
     <div class="card-body">
-      <p class="login-box-msg">Sign in to start your session</p>
-      @if($errors = Session::get('errors'))
-        @foreach($errors as $error)
-            <div class="alert alert-danger alert-block">
-                <button type="button" class="close" data-dismiss="alert">x</button>
-                <strong>{{$error}}</strong>
-            </div>
-        @endforeach
-    @endif
-      <form id="loginForm" action="{{ route('process_login') }}" method="post">
+      <p class="login-box-msg">{{$pageHeading}}</p>
+      @if($message = Session::get('success'))
+        <div class="alert alert-success">
+          <p>{{$message}}</p>
+        </div>
+      @endif
+      <form id="loginForm" action="{{ route('process_forgot_password') }}" method="post">
       @csrf
         <div class="input-group mb-3">
           <input type="email" class="form-control" placeholder="Email" name="email" require>
@@ -42,23 +39,22 @@
           </div>
         </div>
         <div class="input-group mb-3">
-          <input type="password" class="form-control" placeholder="Password" name="password" require>
-          <div class="input-group-append">
-            <div class="input-group-text">
-              <span class="fas fa-lock"></span>
-            </div>
-          </div>
+          @error('email')
+              <span class="text-danger" role="alert">
+                  <strong>@lang(strtolower($message))</strong>
+              </span>
+          @enderror
         </div>
         <div class="row">
           <!-- /.col -->
           <div class="col-12">
-            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+            <button type="submit" class="btn btn-primary btn-block">Submit</button>
           </div>
           <!-- /.col -->
         </div>
       </form>
       <p class="mb-1">
-        <a href="{{ route('forgot_password') }}">I forgot my password</a>
+        <a href="{{route('admin_login')}}">Login</a>
       </p>
     </div>
     <!-- /.card-body -->
