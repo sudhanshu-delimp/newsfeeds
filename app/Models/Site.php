@@ -11,6 +11,7 @@ class Site extends Model
     protected $fillable = [
         'title',
         'site',
-        'logo'
+        'logo',
+        'lang'
     ];
 }

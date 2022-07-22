@@ -26,14 +26,16 @@ class SiteController extends Controller
     {
         $validate['title'] = 'required|unique:sites';
         $validate['site'] = 'required|unique:sites';
+        $validate['lang'] = 'required';
         $validate['file'] = 'required|mimes:png,jpg,jpeg|max:2048';
         $request->validate($validate);
-        $fileName = time().'.'.$request->file->extension();  
+        $fileName = time().'.'.$request->file->extension();
         $request->file->move(public_path('uploads/site_logo'), $fileName);
         $insert = array();
         $insert['title'] = $request->title;
         $insert['site'] = $request->site;
         $insert['logo'] = $fileName;
+        $insert['lang'] = $request->lang;
         $id = Site::create($insert)->id;
         return redirect(route('manage_site.index'))->with('success', 'Added successfully.');
     }
@@ -50,12 +52,14 @@ class SiteController extends Controller
         if(!empty($request->file)){
             $validate['file'] = 'required|mimes:png,jpg,jpeg|max:2048';
         }
+        $validate['lang'] = 'required';
         $request->validate($validate);
         $update = array();
         $update['title'] = $request->title;
         $update['site'] = $request->site;
+        $update['lang'] = $request->lang;
         if(!empty($request->file)){
-            $fileName = time().'.'.$request->file->extension();  
+            $fileName = time().'.'.$request->file->extension();
             $request->file->move(public_path('uploads/site_logo'), $fileName);
             $update['logo'] = $fileName;
         }

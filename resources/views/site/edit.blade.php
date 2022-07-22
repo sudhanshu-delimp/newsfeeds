@@ -68,6 +68,18 @@
                     @enderror
                   </div>
                   <div class="form-group">
+                    <label for="exampleInputLang">Language</label>
+                    <select class="form-control" name="lang"  id="exampleInputLang">
+                      <option value="ar" {{ $site->lang == 'ar' ?'selected':''}}>Arabic</option>
+                      <option value="en" {{ $site->lang == 'en' ?'selected':''}}>English</option>
+                    </select>
+                    @error('lang')
+                        <span class="text-danger" role="alert">
+                            <strong>@lang(strtolower($message))</strong>
+                        </span>
+                    @enderror
+                  </div>
+                  <div class="form-group">
                     <div class="row">
                       <div class="col-sm-4">
                       <label for="exampleInputFile">Logo</label>
@@ -114,7 +126,7 @@
 
 <script>
   $(function () {
-    
+
   });
 </script>
 @endpush
