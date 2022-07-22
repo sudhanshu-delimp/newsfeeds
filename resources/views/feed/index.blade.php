@@ -48,7 +48,7 @@
                   <tbody>
                     @if(!$feeds->isEmpty())
                         @foreach($feeds as $key=>$feed)
-                        
+
                             <tr>
                                 <td>{{$key+1}}</td>
                                 <td>{{$feed->site ? $feed->site->title : null}}</td>
@@ -63,7 +63,7 @@
                                 <form action="{{ route('manage_feed.destroy', $feed->id)}}" method="post">
                                 @method('DELETE')
                                 @csrf
-                                <input class="btn btn-danger" type="submit" value="Remove" />
+                                <input class="btn btn-danger"  onclick="return confirm('Are you sure?')" type="submit" value="Remove" />
                                 </form>
                                 </li>
                                 </ul>
@@ -108,8 +108,8 @@
     }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
     $('#example2').DataTable({
       "paging": true,
-      "lengthChange": false,
-      "searching": false,
+      "lengthChange": true,
+      "searching": true,
       "ordering": true,
       "info": true,
       "autoWidth": false,
