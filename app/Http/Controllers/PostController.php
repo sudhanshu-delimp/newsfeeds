@@ -68,7 +68,7 @@ class PostController extends Controller
           if(count($search) > 0){
             $sh = (object)$search;
             if(!empty($sh->from_date) && !empty($sh->to_date) && $sh->from_date!=$sh->to_date){
-              $post->whereBetween('posts.created_at',[$sh->from_date,$sh->to_date]);
+              $post->whereBetween('posts.created_at',[$sh->from_date.' 00:00:00',$sh->to_date.' 23:59:00']);
             }
             else if(!empty($sh->from_date) && !empty($sh->to_date) && $sh->from_date == $sh->to_date){
               $post->where('posts.created_at', 'like', '%'.$sh->from_date.'%');
