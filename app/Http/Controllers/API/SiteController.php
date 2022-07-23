@@ -40,7 +40,7 @@ class SiteController extends BaseController{
     public function getSites(Request $request){
         $sites = $first_object = $last_object = [];
         if(count($this->error) == 0){
-            $sites = Site::all();
+            $sites = Site::whereNotNull('order')->orderBy('order','asc')->get();
             if(!empty($sites)){
                 foreach($sites as $key=>$site){
                     $sites[$key]['logo_url'] = asset('uploads/site_logo/'.$site->logo);

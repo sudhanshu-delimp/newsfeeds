@@ -12,6 +12,7 @@ class Site extends Model
         'title',
         'site',
         'logo',
-        'lang'
+        'lang',
+        'order'
     ];
 }

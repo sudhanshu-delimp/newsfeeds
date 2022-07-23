@@ -53,16 +53,28 @@
                     @enderror
                   </div>
                   <div class="form-group">
-                    <label for="exampleInputLang">Language</label>
-                    <select class="form-control" name="lang"  id="exampleInputLang">
-                      <option value="ar">Arabic</option>
-                      <option value="en">English</option>
-                    </select>
-                    @error('lang')
+                    <div class="row">
+                      <div class="col-md-6">
+                        <label for="exampleInputLang">Language</label>
+                        <select class="form-control" name="lang"  id="exampleInputLang">
+                          <option value="ar">Arabic</option>
+                          <option value="en">English</option>
+                        </select>
+                        @error('lang')
+                            <span class="text-danger" role="alert">
+                                <strong>@lang(strtolower($message))</strong>
+                            </span>
+                        @enderror
+                      </div>
+                      <div class="col-md-6">
+                        <label for="exampleInputLang">Order</label>
+                        <input type="number" class="form-control" name="order"  id="site-order" value="{{ $order }}" placeholder="Enter Order" readonly>
+                        @error('order')
                         <span class="text-danger" role="alert">
                             <strong>@lang(strtolower($message))</strong>
                         </span>
-                    @enderror
+                        @enderror
+                    </div>
                   </div>
                   <div class="form-group">
                     <label for="exampleInputFile">Logo</label>

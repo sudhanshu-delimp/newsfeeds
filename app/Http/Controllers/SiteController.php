@@ -12,14 +12,16 @@ class SiteController extends Controller
     public function index()
     {
         $pageHeading = "Manage Site";
-        $sites = Site::orderBy('id','desc')->get();
+        $sites = Site::orderBy('order','asc')->get();
         return view('site.index', compact('pageHeading','sites'));
     }
 
     public function create()
     {
         $pageHeading = "Add Site";
-        return view('site.create', compact('pageHeading'));
+        $topOrderSite = Site::orderBy('order','desc')->first();
+        $order = $topOrderSite->order + 1;
+        return view('site.create', compact('pageHeading', 'order'));
     }
 
     public function store(Request $request)
@@ -28,14 +30,20 @@ class SiteController extends Controller
         $validate['site'] = 'required|unique:sites';
         $validate['lang'] = 'required';
         $validate['file'] = 'required|mimes:png,jpg,jpeg|max:2048';
+        //$validate['order'] = 'gt:0|integer|nullable|sometimes|unique:sites,order';
         $request->validate($validate);
         $fileName = time().'.'.$request->file->extension();
         $request->file->move(public_path('uploads/site_logo'), $fileName);
+
+        $topOrderSite = Site::orderBy('order','desc')->first();
+        $order = $topOrderSite->order + 1;
+
         $insert = array();
         $insert['title'] = $request->title;
         $insert['site'] = $request->site;
         $insert['logo'] = $fileName;
         $insert['lang'] = $request->lang;
+        $insert['order'] = $order;
         $id = Site::create($insert)->id;
         return redirect(route('manage_site.index'))->with('success', 'Added successfully.');
     }
@@ -49,6 +57,7 @@ class SiteController extends Controller
     public function update(Request $request, $id){
         $validate['site'] = 'required|unique:sites,site,'.$id;
         $validate['title'] = 'required|unique:sites,title,'.$id;
+        $validate['order'] = 'gt:0|integer|nullable|sometimes|unique:sites,order,'.$id;
         if(!empty($request->file)){
             $validate['file'] = 'required|mimes:png,jpg,jpeg|max:2048';
         }
@@ -58,6 +67,7 @@ class SiteController extends Controller
         $update['title'] = $request->title;
         $update['site'] = $request->site;
         $update['lang'] = $request->lang;
+        $update['order'] = $request->order;
         if(!empty($request->file)){
             $fileName = time().'.'.$request->file->extension();
             $request->file->move(public_path('uploads/site_logo'), $fileName);
