@@ -57,7 +57,7 @@ class SiteController extends Controller
     public function update(Request $request, $id){
         $validate['site'] = 'required|unique:sites,site,'.$id;
         $validate['title'] = 'required|unique:sites,title,'.$id;
-        $validate['order'] = 'gt:0|integer|nullable|sometimes|unique:sites,order,'.$id;
+        $validate['order'] = 'required|gt:0|integer|nullable|sometimes|unique:sites,order,'.$id;
         if(!empty($request->file)){
             $validate['file'] = 'required|mimes:png,jpg,jpeg|max:2048';
         }
