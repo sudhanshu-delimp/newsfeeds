@@ -11,3 +11,7 @@
 #example2 td li form input.btn-danger:hover {
     background-color: #f8f9fa;
 }
+.form img.img-fluid {
+    border: 1px solid #eee;
+    border-radius: 50%;
+}
