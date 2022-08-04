@@ -13,8 +13,8 @@ class PostController extends Controller
     public function index(Request $request)
     {
         $pageHeading = "Manage Post";
-        $posts = Post::orderBy('id','desc')->get();
-        $sites = Site::orderBy('title','asc')->get();
+        $posts = [];
+        $sites = [];
         return view('post.index', compact('pageHeading','sites','posts'));
     }
 
