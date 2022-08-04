@@ -13,9 +13,8 @@ class PostController extends Controller
     public function index(Request $request)
     {
         $pageHeading = "Manage Post";
-        $posts = [];
-        $sites = [];
-        return view('post.index', compact('pageHeading','sites','posts'));
+        $sites = Site::orderBy('title','asc')->get();
+        return view('post.index', compact('pageHeading','sites'));
     }
 
     public function getSearchableFields($request){
