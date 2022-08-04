@@ -17,7 +17,7 @@ class UserController extends Controller
     public function login(Request $request)
     {
       if($request->session()->has('account')){
-        return redirect(route('manage_site.index'));
+        return redirect(route('manage_post.index'));
       }
       else{
         $pageHeading = "Login";
@@ -61,7 +61,7 @@ class UserController extends Controller
           if(count($error) == 0){
             $this->response['status'] = '1';
             $request->session()->put('account', $user);
-            return redirect(route('manage_site.index'))->with('success', 'Successfully Login.');
+            return redirect(route('manage_post.index'))->with('success', 'Successfully Login.');
           }
           else{
             return redirect()->back()->with('errors', $error);
