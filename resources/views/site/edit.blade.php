@@ -144,7 +144,7 @@
 @push('child-scripts')
 <script>
     $(function () {
-    
+
     });
 </script>
 @endpush
