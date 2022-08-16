@@ -47,7 +47,7 @@ class DemoCron extends Command
         if(!empty($urls)){
           foreach($urls as $url){
               $context = stream_context_create(array('ssl'=>array(
-              'verify_peer' => false, 
+              'verify_peer' => false,
               "verify_peer_name"=>false
               )));
               libxml_set_streams_context($context);
@@ -80,7 +80,7 @@ class DemoCron extends Command
               }
               catch (Exception $e) {
                 Log::info('Exception Captured: '.$e->getMessage());
-              } 
+              }
           }
       }
     }
@@ -107,6 +107,9 @@ class DemoCron extends Command
         if(strpos($url,"dev.albilad.site")){
             $response = $this->getAlbiladContent($url,$date);
           }
+          else if(strpos($url,"albiladdaily.com")){
+            $response = $this->getAlbiladDailyContent($url,$date);
+          }
           else if(strpos($url,"arabnews.com")){
             $response = $this->getArabNewsContent($url,$date);
           }
@@ -117,13 +120,13 @@ class DemoCron extends Command
             $response = $this->getOkazContent($url,$date);
           }
           else if(strpos($url,"aleqt.com")){
-            $response = $this->getAleqtContent($url,$date);  
+            $response = $this->getAleqtContent($url,$date);
           }
           else if(strpos($url,"al-jazirah.com")){
-            $response = $this->getJazirahContent($url,$date);  
+            $response = $this->getJazirahContent($url,$date);
           }
           else if(strpos($url,"aawsat.com")){
-            $response = $this->getAawsatContent($url,$date); 
+            $response = $this->getAawsatContent($url,$date);
           }
           else if(strpos($url,"alriyadh.com")){
             $response = $this->getAlriyadhContent($url,$date);
@@ -209,7 +212,7 @@ class DemoCron extends Command
 
         $input['title'] = $title;
         $input['image'] = $image_src;
-        
+
         $input['live_link'] = $item_url;
         $input['category'] = $cat_array;
         $input['main_description'] = $main_description;
@@ -232,7 +235,7 @@ class DemoCron extends Command
                 if(!in_array($tag->nodeValue,$cat_array)){
                 $cat_array[] = $tag->nodeValue;
                 }
-            } 
+            }
         }
 
         $metas = $dom->getElementsByTagName('meta');
@@ -256,7 +259,7 @@ class DemoCron extends Command
 
         $input['title'] = $title;
         $input['image'] = $image_src;
-        
+
         $input['live_link'] = $item_url;
         $input['category'] = $cat_array;
         $input['main_description'] = $main_description;
@@ -292,7 +295,7 @@ class DemoCron extends Command
         }
         $input['title'] = $title;
         $input['image'] = $image_src;
-        
+
         $input['live_link'] = $item_url;
         $input['category'] = $cat_array;
         $input['main_description'] = $main_description;
@@ -329,7 +332,7 @@ class DemoCron extends Command
 
         $input['title'] = $title;
         $input['image'] = $image_src;
-        
+
         $input['live_link'] = $item_url;
         $input['category'] = $cat_array;
         $input['main_description'] = $main_description;
@@ -370,7 +373,7 @@ class DemoCron extends Command
 
         $input['title'] = $title;
         $input['image'] = $image_src;
-        
+
         $input['live_link'] = $item_url;
         $input['category'] = $cat_array;
         $input['main_description'] = $main_description;
@@ -411,7 +414,7 @@ class DemoCron extends Command
 
         $input['title'] = $title;
         $input['image'] = $image_src;
-        
+
         $input['live_link'] = $item_url;
         $input['category'] = $cat_array;
         $input['main_description'] = $main_description;
@@ -450,7 +453,7 @@ class DemoCron extends Command
 
         $input['title'] = $title;
         $input['image'] = $image_src;
-        
+
         $input['live_link'] = $item_url;
         $input['category'] = $cat_array;
         $input['main_description'] = $main_description;
@@ -490,7 +493,7 @@ class DemoCron extends Command
 
         $input['title'] = $title;
         $input['image'] = $image_src;
-        
+
         $input['live_link'] = $item_url;
         $input['category'] = $cat_array;
         $input['main_description'] = $main_description;
@@ -524,10 +527,10 @@ class DemoCron extends Command
         foreach ($contents as $content) {
           $main_description .= $dom->saveHTML($content);
         }
-        
+
         $input['title'] = $title;
         $input['image'] = $image_src;
-        
+
         $input['live_link'] = $item_url;
         $input['category'] = $cat_array;
         $input['main_description'] = $main_description;
@@ -565,7 +568,7 @@ class DemoCron extends Command
 
         $input['title'] = $title;
         $input['image'] = $image_src;
-        
+
         $input['live_link'] = $item_url;
         $input['category'] = $cat_array;
         $input['main_description'] = $main_description;
@@ -694,7 +697,7 @@ class DemoCron extends Command
     foreach ($contents as $content) {
       $main_description .= $dom->saveHTML($content);
     }
-    
+
     $input['title'] = $title;
     $input['image'] = $image_src;
     $input['live_link'] = $item_url;
@@ -733,7 +736,7 @@ class DemoCron extends Command
     foreach ($contents as $content) {
       $main_description .= $dom->saveHTML($content);
     }
-    
+
     $input['title'] = $title;
     $input['image'] = $image_src;
     $input['live_link'] = $item_url;
@@ -764,6 +767,40 @@ class DemoCron extends Command
     $main_description = str_replace("cashdisk/barcode","http://www.spa.gov.sa/cashdisk/barcode",$main_description);
     $input['title'] = $title;
     $input['image'] = $image_src;
+    $input['live_link'] = $item_url;
+    $input['category'] = $cat_array;
+    $input['main_description'] = $main_description;
+    return $input;
+  }
+
+  public function getAlbiladDailyContent($item_url,$date){
+    $input = $cat_array = [];
+    $title = $main_description = $image_src = '';
+    $data = $this->getDomContent($item_url);
+    $dom = new \DOMDocument();
+    @$dom->loadHTML(mb_convert_encoding($data, 'HTML-ENTITIES', 'UTF-8'));
+    $xpath = new \DOMXPath($dom);
+    $query = '//*/header[starts-with(@class, \'entry-header\')]//h1';
+    $title_contents = $xpath->query($query);
+    if(!empty($title_contents)){
+      $title.= $title_contents->item(0)->nodeValue;
+    }
+
+    $query = '//*/figure[contains(@class, \'post-thumbnail\')]//img';
+    $image_contents = $xpath->query($query);
+    if(!empty($image_contents)){
+      $attributes = $image_contents->item(0)->attributes;
+      $image_src .= $this->getAttributeValue($attributes,'src');
+    }
+
+    $query = '//*/div[starts-with(@class, \'entry-content\')]';
+    $contents = $xpath->query($query);
+    foreach ($contents as $content) {
+      $main_description .= $dom->saveHTML($content);
+    }
+    $input['title'] = $title;
+    $input['image'] = $image_src;
+
     $input['live_link'] = $item_url;
     $input['category'] = $cat_array;
     $input['main_description'] = $main_description;
