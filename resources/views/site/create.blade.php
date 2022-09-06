@@ -55,6 +55,27 @@
                   <div class="form-group">
                     <div class="row">
                       <div class="col-md-6">
+                        <label for="exampleInputLang">Email</label>
+                        <input type="email" name="email" value="{{ old('email') }}" class="form-control" id="email" placeholder="Enter email">
+                        @error('email')
+                            <span class="text-danger" role="alert">
+                                <strong>@lang(strtolower($message))</strong>
+                            </span>
+                        @enderror
+                      </div>
+                      <div class="col-md-6">
+                        <label for="exampleInputLang">Phone</label>
+                        <input type="number" class="form-control" name="phone"  id="phone" value="{{ old('phone') }}" placeholder="Enter phone">
+                        @error('phone')
+                        <span class="text-danger" role="alert">
+                            <strong>@lang(strtolower($message))</strong>
+                        </span>
+                        @enderror
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="row">
+                      <div class="col-md-6">
                         <label for="exampleInputLang">Language</label>
                         <select class="form-control" name="lang"  id="exampleInputLang">
                           <option value="ar">Arabic</option>

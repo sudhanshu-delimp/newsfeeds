@@ -29,6 +29,8 @@ class SiteController extends Controller
         $validate['title'] = 'required|unique:sites';
         $validate['site'] = 'required|unique:sites';
         $validate['lang'] = 'required';
+        $validate['phone'] = 'numeric|nullable';
+        $validate['email'] = 'email|nullable';
         $validate['file'] = 'required|mimes:png,jpg,jpeg|max:2048';
         //$validate['order'] = 'gt:0|integer|nullable|sometimes|unique:sites,order';
         $request->validate($validate);
@@ -43,6 +45,8 @@ class SiteController extends Controller
         $insert['site'] = $request->site;
         $insert['logo'] = $fileName;
         $insert['lang'] = $request->lang;
+        $insert['phone'] = $request->phone;
+        $insert['email'] = $request->email;
         $insert['order'] = $order;
         $id = Site::create($insert)->id;
         return redirect(route('manage_site.index'))->with('success', 'Added successfully.');
@@ -62,12 +66,16 @@ class SiteController extends Controller
             $validate['file'] = 'required|mimes:png,jpg,jpeg|max:2048';
         }
         $validate['lang'] = 'required';
+        $validate['phone'] = 'numeric|nullable';
+        $validate['email'] = 'email|nullable';
         $request->validate($validate);
         $update = array();
         $update['title'] = $request->title;
         $update['site'] = $request->site;
         $update['lang'] = $request->lang;
         $update['order'] = $request->order;
+        $update['phone'] = $request->phone;
+        $update['email'] = $request->email;
         if(!empty($request->file)){
             $fileName = time().'.'.$request->file->extension();
             $request->file->move(public_path('uploads/site_logo'), $fileName);

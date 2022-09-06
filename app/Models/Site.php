@@ -13,6 +13,8 @@ class Site extends Model
         'site',
         'logo',
         'lang',
-        'order'
+        'order',
+        'phone',
+        'email',
     ];
 }
